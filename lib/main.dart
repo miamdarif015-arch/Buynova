@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+                                            style:
+     import 'package:flutter/material.dart';
 
 void main() {
   runApp(const BuyNovaApp());
@@ -1218,6 +1219,921 @@ class _CartPageState extends State<CartPage> {
                                             '${item.quantity}',
                                             style:
                                                 const TextStyle(
+                                              fontWeight:
+                                                  FontWeight
+                                                      .bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () =>
+                                                increase(
+                                                    item),
+                                            icon:
+                                                const Icon(
+                                              Icons
+                                                  .add_circle_outline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Card(
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _priceRow(
+                                'Subtotal',
+                                formatPrice(subtotal),
+                              ),
+                              const SizedBox(height: 8),
+                              _priceRow(
+                                'Delivery',
+                                formatPrice(deliveryFee),
+                              ),
+                              const Divider(height: 25),
+                              _priceRow(
+                                'Total',
+                                formatPrice(total),
+                                bold: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      SizedBox(
+                        height: 55,
+                        child: FilledButton(
+                          onPressed: checkout,
+                          child: const Text(
+                            'Checkout',
+                            style: TextStyle(
+                              fontSize: 17,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 25),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _priceRow(
+    String title,
+    String value, {
+    bool bold = false,
+  }) {
+    return Row(
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight:
+                bold ? FontWeight.bold : FontWeight.normal,
+            fontSize: bold ? 18 : 15,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight:
+                bold ? FontWeight.bold : FontWeight.normal,
+            fontSize: bold ? 18 : 15,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/* =========================================================
+   CHECKOUT
+========================================================= */
+
+class CheckoutPage extends StatefulWidget {
+  final List<CartItem> cart;
+  final List<Address> addresses;
+  final List<Order> orders;
+  final int total;
+
+  const CheckoutPage({
+    super.key,
+    required this.cart,
+    required this.addresses,
+    required this.orders,
+    required this.total,
+  });
+
+  @override
+  State<CheckoutPage> createState() =>
+      _CheckoutPageState();
+}
+
+class _CheckoutPageState extends State<CheckoutPage> {
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final addressController = TextEditingController();
+  final cityController = TextEditingController();
+
+  String payment = 'Cash on Delivery';
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    cityController.dispose();
+    super.dispose();
+  }
+
+  void placeOrder() {
+    if (nameController.text.trim().isEmpty ||
+        phoneController.text.trim().isEmpty ||
+        addressController.text.trim().isEmpty ||
+        cityController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('সব তথ্য পূরণ করুন'),
+        ),
+      );
+      return;
+    }
+
+    final address = Address(
+      name: nameController.text.trim(),
+      phone: phoneController.text.trim(),
+      address: addressController.text.trim(),
+      city: cityController.text.trim(),
+    );
+
+    widget.addresses.add(address);
+
+    final order = Order(
+      id: 'BN-${DateTime.now().millisecondsSinceEpoch}',
+      items: widget.cart
+          .map(
+            (item) => CartItem(
+              product: item.product,
+              quantity: item.quantity,
+            ),
+          )
+          .toList(),
+      total: widget.total,
+      address: address,
+      date: DateTime.now(),
+    );
+
+    widget.orders.insert(0, order);
+
+    widget.cart.clear();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Order Successful 🎉'),
+          content: Text(
+            'Your order ${order.id} has been placed.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context, true);
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Checkout'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            'Delivery Address',
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Full Name',
+              prefixIcon: Icon(Icons.person_outline),
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Phone Number',
+              prefixIcon: Icon(Icons.phone_outlined),
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: addressController,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              labelText: 'Address',
+              prefixIcon: Icon(Icons.home_outlined),
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: cityController,
+            decoration: const InputDecoration(
+              labelText: 'City',
+              prefixIcon:
+                  Icon(Icons.location_city_outlined),
+              border: OutlineInputBorder(),
+            ),
+          ),
+
+          const SizedBox(height: 25),
+
+          const Text(
+            'Payment Method',
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          RadioListTile<String>(
+            value: 'Cash on Delivery',
+            groupValue: payment,
+            title: const Text('Cash on Delivery'),
+            onChanged: (value) {
+              setState(() {
+                payment = value!;
+              });
+            },
+          ),
+
+          RadioListTile<String>(
+            value: 'Online Payment',
+            groupValue: payment,
+            title: const Text('Online Payment'),
+            onChanged: (value) {
+              setState(() {
+                payment = value!;
+              });
+            },
+          ),
+
+          const SizedBox(height: 15),
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    formatPrice(widget.total),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          SizedBox(
+            height: 55,
+            child: FilledButton(
+              onPressed: placeOrder,
+              child: const Text(
+                'Place Order',
+                style: TextStyle(fontSize: 17),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* =========================================================
+   FAVORITES
+========================================================= */
+
+class FavoritesPage extends StatelessWidget {
+  final Set<String> favorites;
+  final Function(Product) onAddToCart;
+  final Function(Product) onFavorite;
+
+  const FavoritesPage({
+    super.key,
+    required this.favorites,
+    required this.onAddToCart,
+    required this.onFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final favoriteProducts = products
+        .where(
+          (product) => favorites.contains(product.id),
+        )
+        .toList();
+
+    return SafeArea(
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(18),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Favorites',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+
+          Expanded(
+            child: favoriteProducts.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.favorite_border,
+                          size: 80,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 15),
+                        Text(
+                          'No favorite products',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
+                    padding:
+                        const EdgeInsets.all(12),
+                    itemCount:
+                        favoriteProducts.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 0.68,
+                    ),
+                    itemBuilder: (context, index) {
+                      final product =
+                          favoriteProducts[index];
+
+                      return ProductCard(
+                        product: product,
+                        isFavorite: true,
+                        onAddToCart: () =>
+                            onAddToCart(product),
+                        onFavorite: () =>
+                            onFavorite(product),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+class ProfilePage extends StatelessWidget {
+  final List<Order> orders;
+  final List<Address> addresses;
+
+  const ProfilePage({
+    super.key,
+    required this.orders,
+    required this.addresses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const SizedBox(height: 20),
+
+          const CircleAvatar(
+            radius: 48,
+            child: Icon(
+              Icons.person,
+              size: 50,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          const Center(
+            child: Text(
+              'BuyNova Customer',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          const Center(
+            child: Text(
+              'customer@buynova.com',
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 25),
+
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.receipt_long_outlined,
+              ),
+              title: const Text('My Orders'),
+              subtitle:
+                  Text('${orders.length} order(s)'),
+              trailing:
+                  const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OrderHistoryPage(
+                      orders: orders,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.location_on_outlined,
+              ),
+              title: const Text('My Addresses'),
+              subtitle:
+                  Text('${addresses.length} saved'),
+              trailing:
+                  const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AddressPage(
+                      addresses: addresses,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.settings_outlined,
+              ),
+              title: const Text('Settings'),
+              trailing:
+                  const Icon(Icons.chevron_right),
+              onTap: () {},
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.help_outline,
+              ),
+              title: const Text('Help & Support'),
+              trailing:
+                  const Icon(Icons.chevron_right),
+              onTap: () {},
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: const Icon(
+                Icons.logout,
+              ),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const LoginPage(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* =========================================================
+   ADDRESS PAGE
+========================================================= */
+
+class AddressPage extends StatelessWidget {
+  final List<Address> addresses;
+
+  const AddressPage({
+    super.key,
+    required this.addresses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Addresses'),
+      ),
+      body: addresses.isEmpty
+          ? const Center(
+              child: Text(
+                'No saved addresses',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 18,
+                ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: addresses.length,
+              itemBuilder: (context, index) {
+                final address =
+                    addresses[index];
+
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.location_on,
+                    ),
+                    title: Text(
+                      address.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${address.phone}\n'
+                      '${address.address}\n'
+                      '${address.city}',
+                    ),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+/* =========================================================
+   ORDER HISTORY
+========================================================= */
+
+class OrderHistoryPage extends StatelessWidget {
+  final List<Order> orders;
+
+  const OrderHistoryPage({
+    super.key,
+    required this.orders,
+  });
+
+  String formatDate(DateTime date) {
+    return '${date.year}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order History'),
+      ),
+      body: orders.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 80,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    'No orders yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: orders.length,
+              itemBuilder: (context, index) {
+                final order = orders[index];
+
+                return Card(
+                  margin: const EdgeInsets.only(
+                    bottom: 10,
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(
+                        Icons.shopping_bag,
+                      ),
+                    ),
+                    title: Text(
+                      order.id,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${order.items.length} item(s)\n'
+                      '${formatDate(order.date)}\n'
+                      '${order.status}',
+                    ),
+                    isThreeLine: true,
+                    trailing: Text(
+                      formatPrice(order.total),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              OrderDetailsPage(
+                            order: order,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+/* =========================================================
+   ORDER DETAILS
+========================================================= */
+
+class OrderDetailsPage extends StatelessWidget {
+  final Order order;
+
+  const OrderDetailsPage({
+    super.key,
+    required this.order,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order Details'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Order Information',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Text(
+                    'Order ID: ${order.id}',
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'Status: ${order.status}',
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'Date: ${order.date.year}-'
+                    '${order.date.month.toString().padLeft(2, '0')}-'
+                    '${order.date.day.toString().padLeft(2, '0')}',
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          const Text(
+            'Products',
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          ...order.items.map(
+            (item) => Card(
+              child: ListTile(
+                leading: Icon(
+                  item.product.icon,
+                ),
+                title: Text(
+                  item.product.name,
+                ),
+                subtitle: Text(
+                  'Quantity: ${item.quantity}',
+                ),
+                trailing: Text(
+                  formatPrice(
+                    item.product.price *
+                        item.quantity,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Delivery Address',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(order.address.name),
+                  Text(order.address.phone),
+                  Text(order.address.address),
+                  Text(order.address.city),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    formatPrice(order.total),
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}                                           const TextStyle(
                                               fontWeight:
                                                   FontWeight
                                                       .bold,
