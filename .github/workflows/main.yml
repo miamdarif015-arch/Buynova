@@ -23,10 +23,10 @@ jobs:
       - name: Create Android project
         run: flutter create --platforms=android --org com.buynova .
 
-      - name: Check Android project
+      - name: Set Android package name
         run: |
-          test -d android/app
-          echo "Android project created successfully"
+          sed -i "s/applicationId = .*/applicationId = \"com.buynova.app\"/" android/app/build.gradle.kts
+          sed -i "s/namespace = .*/namespace = \"com.buynova.app\"/" android/app/build.gradle.kts
 
       - name: Get dependencies
         run: flutter pub get
